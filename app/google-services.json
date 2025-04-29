@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "192515126857",
+    "project_id": "expenseninja",
+    "storage_bucket": "expenseninja.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:192515126857:android:3020072887383f10c53198",
+        "android_client_info": {
+          "package_name": "com.st10028058.prog7313_part2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAgxxIKXsdZbmM9Dco0A9YqLmte6_A1P8w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
