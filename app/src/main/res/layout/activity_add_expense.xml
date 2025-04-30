@@ -13,21 +13,13 @@
 
         <EditText
             android:id="@+id/etDate"
-            android:hint="Date (YYYY-MM-DD)"
-            android:inputType="date"
+            android:hint="Select Date"
+            android:focusable="false"
+            android:clickable="true"
+            android:inputType="none"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-
-            android:layout_marginBottom="12dp"/>
-
-        <EditText
-            android:id="@+id/etTime"
-            android:hint="Time (HH:MM)"
-            android:inputType="time"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-
-            android:layout_marginBottom="12dp"/>
+            android:layout_marginBottom="12dp" />
 
         <EditText
             android:id="@+id/etDescription"
@@ -35,7 +27,6 @@
             android:inputType="text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-
             android:layout_marginBottom="12dp"/>
 
         <EditText
@@ -44,7 +35,6 @@
             android:inputType="text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-
             android:layout_marginBottom="12dp"/>
 
         <EditText
@@ -53,7 +43,6 @@
             android:inputType="numberDecimal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-
             android:layout_marginBottom="24dp"/>
 
         <Button
@@ -61,7 +50,6 @@
             android:text="Save Expense"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-
             android:textColor="@android:color/white"/>
     </LinearLayout>
 </ScrollView>
