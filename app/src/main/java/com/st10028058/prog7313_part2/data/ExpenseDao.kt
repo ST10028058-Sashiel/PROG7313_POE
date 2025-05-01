@@ -17,4 +17,11 @@ interface ExpenseDao {
 
     @Query("SELECT category, SUM(amount) AS total FROM Expense WHERE date BETWEEN :start AND :end GROUP BY category")
     fun getCategoryTotals(start: String, end: String): List<CategoryTotal>
+
+    @Query("SELECT * FROM Expense WHERE id = :expenseId LIMIT 1")
+    fun getExpenseById(expenseId: Int): Expense?
+
+    @Delete
+    suspend fun deleteExpense(expense: Expense)
+
 }

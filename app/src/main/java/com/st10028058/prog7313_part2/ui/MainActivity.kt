@@ -11,24 +11,36 @@ import com.st10028058.prog7313_part2.ui.adapter.ExpenseAdapter
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private val adapter = ExpenseAdapter()
+    private val adapter = ExpenseAdapter { expense ->
+        val intent = Intent(this, ExpenseDetailActivity::class.java)
+        intent.putExtra("expense_id", expense.id)
+        startActivity(intent)
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.recyclerView.layoutManager = LinearLayoutManager(this)
-        binding.recyclerView.adapter = adapter
-
-        val db = AppDatabase.getDatabase(this)
-
-        db.expenseDao().getAllExpenses().observe(this) {
-            adapter.submitList(it)
-        }
 
         binding.btnAddExpense.setOnClickListener {
             startActivity(Intent(this, AddExpenseActivity::class.java))
         }
+
+        // ✅ Add navigation buttons
+        binding.btnSetGoals.setOnClickListener {
+            startActivity(Intent(this, SetGoalActivity::class.java))
+        }
+
+        binding.btnFilterExpenses.setOnClickListener {
+            startActivity(Intent(this, FilterExpensesActivity::class.java))
+        }
+
+        binding.btnCategoryTotals.setOnClickListener {
+            startActivity(Intent(this, CategoryTotalActivity::class.java))
+        }
+
+
     }
 }

@@ -4,25 +4,89 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:padding="24dp"
+    android:background="#FAFAFA">
 
-    <Button
-        android:id="@+id/btnAddExpense"
+    <!-- Title -->
+    <TextView
+        android:id="@+id/tvMainTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Add Expense"
-
-        android:textColor="@android:color/white"
+        android:text="ExpenseNinja Dashboard"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:textColor="#2C3E50"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerView"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/btnAddExpense"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp"/>
+        android:layout_marginBottom="32dp" />
+
+    <!-- Add Expense -->
+    <Button
+        android:id="@+id/btnAddExpense"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="➕ Add New Expense"
+        android:textStyle="bold"
+        android:backgroundTint="#27AE60"
+        android:textColor="#FFFFFF"
+        app:layout_constraintTop_toBottomOf="@id/tvMainTitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Set Goals -->
+    <Button
+        android:id="@+id/btnSetGoals"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="🎯 Set Budget Goals"
+        android:textStyle="bold"
+        android:backgroundTint="#2980B9"
+        android:textColor="#FFFFFF"
+        app:layout_constraintTop_toBottomOf="@id/btnAddExpense"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp" />
+
+    <Button
+        android:id="@+id/btnViewAllExpenses"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="📋 View All Expenses"
+        android:backgroundTint="#34495E"
+        android:textColor="#FFFFFF"
+        android:layout_marginTop="12dp"
+        app:layout_constraintTop_toBottomOf="@+id/btnCategoryTotals"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+
+    <!-- Filter Expenses -->
+    <Button
+        android:id="@+id/btnFilterExpenses"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="📅 View Expenses by Date"
+        android:textStyle="bold"
+        android:backgroundTint="#8E44AD"
+        android:textColor="#FFFFFF"
+        app:layout_constraintTop_toBottomOf="@id/btnSetGoals"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp" />
+
+    <!-- Category Totals -->
+    <Button
+        android:id="@+id/btnCategoryTotals"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="📊 View Totals by Category"
+        android:textStyle="bold"
+        android:backgroundTint="#E67E22"
+        android:textColor="#FFFFFF"
+        app:layout_constraintTop_toBottomOf="@id/btnFilterExpenses"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
