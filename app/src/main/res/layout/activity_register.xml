@@ -2,61 +2,93 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:padding="24dp"
+    android:background="#FAFAFA"
     tools:context=".ui.RegisterActivity">
 
-    <TextView
-        android:id="@+id/textView2"
-        android:layout_width="256dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="52dp"
-        android:text="TextView"
-        app:layout_constraintBottom_toTopOf="@+id/edtRegEmail"
-        app:layout_constraintEnd_toEndOf="parent"
+    <!-- Logo -->
+    <ImageView
+        android:id="@+id/imgLogo"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:src="@drawable/logo_expenseninja"
+        android:contentDescription="Logo"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="32dp" />
 
+    <!-- Title -->
+    <TextView
+        android:id="@+id/tvRegisterTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Create your ExpenseNinja account"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="#2C3E50"
+        app:layout_constraintTop_toBottomOf="@id/imgLogo"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="12dp" />
+
+    <!-- Message -->
+    <TextView
+        android:id="@+id/tvRegisterMessage"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Quick and easy registration to track your expenses like a pro."
+        android:textSize="15sp"
+        android:textColor="#616161"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@id/tvRegisterTitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="4dp" />
+
+    <!-- Email -->
     <EditText
         android:id="@+id/edtRegEmail"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="58dp"
-        android:layout_marginEnd="58dp"
-        android:layout_marginBottom="59dp"
-        android:ems="10"
+        android:layout_height="wrap_content"
         android:hint="Enter Email"
         android:inputType="textEmailAddress"
-        app:layout_constraintBottom_toTopOf="@+id/edtRegPassword"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:textColor="#000000"
+        android:padding="14dp"
+        android:background="@drawable/bg_edittext"
+        app:layout_constraintTop_toBottomOf="@id/tvRegisterMessage"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView2" />
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="28dp" />
 
+    <!-- Password -->
     <EditText
         android:id="@+id/edtRegPassword"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="56dp"
-        android:layout_marginEnd="56dp"
-        android:layout_marginBottom="109dp"
-        android:ems="10"
+        android:layout_height="wrap_content"
         android:hint="Enter Password"
         android:inputType="textPassword"
-        app:layout_constraintBottom_toTopOf="@+id/btnSubmit"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:padding="14dp"
+        android:textColor="#000000"
+        android:background="@drawable/bg_edittext"
+        app:layout_constraintTop_toBottomOf="@id/edtRegEmail"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/edtRegEmail" />
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp" />
 
+    <!-- Submit Button -->
     <Button
         android:id="@+id/btnSubmit"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="230dp"
-        android:text="Submit"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:text="Register"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#27AE60"
+        app:layout_constraintTop_toBottomOf="@id/edtRegPassword"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/edtRegPassword" />
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="24dp" />
 </androidx.constraintlayout.widget.ConstraintLayout>

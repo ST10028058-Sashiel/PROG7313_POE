@@ -1,6 +1,7 @@
 package com.st10028058.prog7313_part2.ui
 
 import android.app.DatePickerDialog
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -10,10 +11,14 @@ import com.st10028058.prog7313_part2.data.Expense
 import com.st10028058.prog7313_part2.databinding.ActivityAddExpenseBinding
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import androidx.activity.result.contract.ActivityResultContracts
+
 
 class AddExpenseActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityAddExpenseBinding
+    private var selectedPhotoUri: Uri? = null
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,6 +28,18 @@ class AddExpenseActivity : AppCompatActivity() {
         binding.etDate.setOnClickListener {
             showDatePicker()
         }
+
+        val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            if (uri != null) {
+                selectedPhotoUri = uri
+                Toast.makeText(this, "Photo selected", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        binding.btnSelectPhoto.setOnClickListener {
+            pickImage.launch("image/*")
+        }
+
 
 
         binding.btnSave.setOnClickListener {
@@ -74,7 +91,7 @@ class AddExpenseActivity : AppCompatActivity() {
                     description = description,
                     category = category,
                     amount = amount,
-                    photoPath = null
+                    photoPath = selectedPhotoUri?.toString()
                 )
             )
             Toast.makeText(this@AddExpenseActivity, "Expense saved!", Toast.LENGTH_SHORT).show()
