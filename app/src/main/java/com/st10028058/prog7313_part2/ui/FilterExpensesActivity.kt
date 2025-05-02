@@ -90,15 +90,16 @@ class FilterExpensesActivity : AppCompatActivity() {
     }
 }
 //Code Attribution
+
+//# Code and support generated with the help of OpenAI's ChatGPT.
 //ChatGPT (OpenAI GPT-4)
-//AI-generated code snippets to fix errors and explanations were provided using ChatGPT for Kotlin development tasks, RoomDB setup.
-//Source:
-//OpenAI, 2024. ChatGPT (version GPT-4) [online] Available at: https://chat.openai.com [Accessed 2 May 2025].
 
 //Kotlin Official Documentation
 //Code patterns and language features were referenced from the official Kotlin documentation, including examples related to classes, coroutines, and Android development.
 //Source:
 //JetBrains, 2025. Kotlin Programming Language Documentation [online] Available at: https://kotlinlang.org/docs/home.html [Accessed 2 May 2025].
+
+// W3schools / /https://www.w3schools.com/kotlin/index.php
 
 //Stack Overflow
 //Practical coding solutions for common errors and Firebase integration were adapted from community answers on Stack Overflow.
