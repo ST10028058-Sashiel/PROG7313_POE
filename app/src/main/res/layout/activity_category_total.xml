@@ -3,40 +3,59 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
+    android:padding="24dp"
+
     tools:context=".ui.CategoryTotalActivity">
 
     <LinearLayout
-        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvHeading"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="View Totals by Category"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="?attr/colorPrimary"
+            android:gravity="center"
+            android:layout_marginBottom="24dp" />
 
         <EditText
             android:id="@+id/etStartDate"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Start Date (YYYY-MM-DD)"
-            android:focusable="false"
+            android:layout_height="42dp"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/bg_input"
             android:clickable="true"
-            android:layout_marginBottom="12dp" />
+            android:focusable="false"
+            android:hint="Select Start Date"
+            android:inputType="none"
+            android:textColor="?attr/colorOnBackground" />
 
         <EditText
             android:id="@+id/etEndDate"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="End Date (YYYY-MM-DD)"
-            android:focusable="false"
+            android:layout_height="40dp"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/bg_input"
             android:clickable="true"
-            android:layout_marginBottom="12dp" />
+            android:focusable="false"
+            android:hint="Select End Date"
+            android:inputType="none"
+            android:textColor="?attr/colorOnBackground" />
 
         <Button
             android:id="@+id/btnFilter"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Show Totals"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="20dp"
             android:backgroundTint="#34495E"
-            android:textColor="@android:color/white" />
+            android:text="Show Totals"
+            android:textColor="@android:color/white"
+            android:textStyle="bold" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerView"
@@ -48,8 +67,9 @@
             android:id="@+id/btnBack"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="← Back"
-            android:backgroundTint="#BDC3C7"
-            android:textColor="#2C3E50" />
+            android:backgroundTint="#D6DBDF"
+            android:text="← Back to Dashboard"
+            android:textColor="#2C3E50"
+            android:textStyle="bold" />
     </LinearLayout>
 </ScrollView>

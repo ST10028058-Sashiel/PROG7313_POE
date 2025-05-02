@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.firebase.auth.FirebaseAuth
 import com.st10028058.prog7313_part2.data.AppDatabase
 import com.st10028058.prog7313_part2.databinding.ActivityFilterExpensesBinding
 import com.st10028058.prog7313_part2.ui.adapter.ExpenseAdapter
@@ -68,9 +69,15 @@ class FilterExpensesActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
+            val userId = FirebaseAuth.getInstance().currentUser?.uid
+            if (userId.isNullOrEmpty()) {
+                Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             val dao = AppDatabase.getDatabase(this).expenseDao()
             CoroutineScope(Dispatchers.IO).launch {
-                val expenses = dao.getExpensesInRange(startDate, endDate)
+                val expenses = dao.getExpensesInRange(userId, startDate, endDate)
                 runOnUiThread {
                     adapter.submitList(expenses)
                 }

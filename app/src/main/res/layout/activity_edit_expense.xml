@@ -2,7 +2,6 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?android:attr/colorBackground"
     android:padding="24dp">
 
     <LinearLayout
@@ -11,69 +10,57 @@
         android:orientation="vertical">
 
         <TextView
-            android:id="@+id/tvHeading"
+            android:id="@+id/tvTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Enter Your Expense Details Below"
-            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="Edit Expense"
+            android:textSize="20sp"
             android:textStyle="bold"
-            android:textColor="?android:attr/textColorPrimary"
+            android:textColor="?attr/colorPrimary"
             android:gravity="center"
             android:layout_marginBottom="24dp" />
 
         <EditText
             android:id="@+id/etDate"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Select Date"
-            android:focusable="false"
-            android:clickable="true"
-            android:inputType="none"
-            android:textSize="18sp"
-            android:padding="12dp"
+            android:layout_height="50dp"
             android:layout_marginBottom="12dp"
             android:background="@drawable/bg_input"
-            android:textColor="?android:attr/textColorPrimary"
-            />
+            android:clickable="true"
+            android:focusable="false"
+            android:hint="Date"
+
+            android:inputType="none"
+            android:textColor="?attr/colorOnBackground" />
 
         <EditText
             android:id="@+id/etDescription"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Description"
-            android:inputType="text"
-            android:textSize="18sp"
-            android:padding="12dp"
+            android:layout_height="37dp"
             android:layout_marginBottom="12dp"
             android:background="@drawable/bg_input"
-            android:textColor="?android:attr/textColorPrimary"
-            />
+            android:hint="Description"
+
+            android:textColor="?attr/colorOnBackground" />
 
         <EditText
             android:id="@+id/etCategory"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Category"
-            android:inputType="text"
-            android:textSize="18sp"
-            android:padding="12dp"
+            android:layout_height="38dp"
             android:layout_marginBottom="12dp"
             android:background="@drawable/bg_input"
-            android:textColor="?android:attr/textColorPrimary"
-         />
+            android:hint="Category"
+            android:textColor="?attr/colorOnBackground" />
 
         <EditText
             android:id="@+id/etAmount"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="58dp"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/bg_input"
             android:hint="Amount (R)"
             android:inputType="numberDecimal"
-            android:textSize="18sp"
-            android:padding="12dp"
-            android:layout_marginBottom="24dp"
-            android:background="@drawable/bg_input"
-            android:textColor="?android:attr/textColorPrimary"
-            />
+            android:textColor="?attr/colorOnBackground" />
 
         <ImageView
             android:id="@+id/imgPhoto"
@@ -81,25 +68,27 @@
             android:layout_height="200dp"
             android:layout_marginBottom="16dp"
             android:scaleType="centerCrop"
-            android:contentDescription="Selected Photo"
-            android:background="?android:attr/colorForegroundInverse"
+            android:contentDescription="Expense Photo"
+            android:background="?attr/colorSurface"
             android:src="@android:drawable/ic_menu_gallery" />
-
-        <Button
-            android:id="@+id/btnSelectPhoto"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Select Photo"
-            android:layout_marginBottom="16dp"
-            android:textColor="@android:color/white"
-            android:backgroundTint="?android:attr/colorAccent" />
 
         <Button
             android:id="@+id/btnSave"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Save Expense"
+            android:text="Save Changes"
             android:textColor="@android:color/white"
-            android:backgroundTint="?android:attr/colorAccent" />
+            android:backgroundTint="?attr/colorPrimary"
+            android:layout_marginBottom="12dp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnBack"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Cancel"
+            android:textStyle="bold"
+            android:textColor="?attr/colorPrimary"
+            android:backgroundTint="#ECEFF1" />
     </LinearLayout>
 </ScrollView>

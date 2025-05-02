@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.google.gms.google.services)
     id("org.jetbrains.kotlin.kapt")
+
+
 }
 
 android {
@@ -42,34 +44,24 @@ android {
 
 dependencies {
 
-        // AndroidX Core + UI
         implementation(libs.androidx.core.ktx)
         implementation(libs.androidx.appcompat)
         implementation(libs.material)
         implementation(libs.androidx.activity)
         implementation(libs.androidx.constraintlayout)
         implementation(libs.androidx.annotation)
-
-        // Lifecycle
         implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
         implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
-
-        // Room (Stable version)
         implementation("androidx.room:room-runtime:2.6.1")
         implementation("androidx.room:room-ktx:2.6.1")
         kapt("androidx.room:room-compiler:2.6.1")
-
-        // RecyclerView
         implementation("androidx.recyclerview:recyclerview:1.3.2")
-
-        // Firebase Auth (Already included by you)
         implementation(libs.firebase.auth)
-
-        // Material Design
         implementation("com.google.android.material:material:1.11.0")
-
-        // Testing
         testImplementation(libs.junit)
         androidTestImplementation(libs.androidx.junit)
         androidTestImplementation(libs.androidx.espresso.core)
+
+
+
 }

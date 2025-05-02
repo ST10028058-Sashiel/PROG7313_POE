@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.google.firebase.auth.FirebaseAuth
 import com.st10028058.prog7313_part2.databinding.ActivitySetGoalBinding
 
 class SetGoalActivity : AppCompatActivity() {
@@ -15,14 +16,21 @@ class SetGoalActivity : AppCompatActivity() {
         binding = ActivitySetGoalBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val prefs = getSharedPreferences("budget_prefs", Context.MODE_PRIVATE)
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+        if (userId.isNullOrEmpty()) {
+            Toast.makeText(this, "User not logged in.", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
+
+        val prefs = getSharedPreferences("budget_prefs_$userId", Context.MODE_PRIVATE)
 
         // Load saved values
-        val minGoal = prefs.getFloat("min_goal", 0f)
-        val maxGoal = prefs.getFloat("max_goal", 0f)
+        val minGoal = prefs.getFloat("min_goal", -1f)
+        val maxGoal = prefs.getFloat("max_goal", -1f)
 
-        binding.etMinGoal.setText(minGoal.toString())
-        binding.etMaxGoal.setText(maxGoal.toString())
+        if (minGoal != -1f) binding.etMinGoal.setText(minGoal.toString())
+        if (maxGoal != -1f) binding.etMaxGoal.setText(maxGoal.toString())
 
         // Save on click
         binding.btnSaveGoals.setOnClickListener {
@@ -34,6 +42,7 @@ class SetGoalActivity : AppCompatActivity() {
                     .putFloat("min_goal", min)
                     .putFloat("max_goal", max)
                     .apply()
+
                 Toast.makeText(this, "Goals saved!", Toast.LENGTH_SHORT).show()
                 finish()
             } else {

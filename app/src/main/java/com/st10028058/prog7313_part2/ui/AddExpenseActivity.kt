@@ -1,24 +1,28 @@
 package com.st10028058.prog7313_part2.ui
 
 import android.app.DatePickerDialog
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.google.firebase.auth.FirebaseAuth
 import com.st10028058.prog7313_part2.data.AppDatabase
 import com.st10028058.prog7313_part2.data.Expense
 import com.st10028058.prog7313_part2.databinding.ActivityAddExpenseBinding
 import kotlinx.coroutines.launch
-import java.util.Calendar
-import androidx.activity.result.contract.ActivityResultContracts
-
+import java.io.File
+import java.io.FileOutputStream
+import java.io.InputStream
+import java.util.*
 
 class AddExpenseActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityAddExpenseBinding
     private var selectedPhotoUri: Uri? = null
-
+    private var savedImagePath: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,15 +36,14 @@ class AddExpenseActivity : AppCompatActivity() {
         val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
             if (uri != null) {
                 selectedPhotoUri = uri
-                Toast.makeText(this, "Photo selected", Toast.LENGTH_SHORT).show()
+                binding.imgPhoto.setImageURI(uri)
+                saveImageToInternalStorage(uri)
             }
         }
 
         binding.btnSelectPhoto.setOnClickListener {
             pickImage.launch("image/*")
         }
-
-
 
         binding.btnSave.setOnClickListener {
             saveExpense()
@@ -49,20 +52,33 @@ class AddExpenseActivity : AppCompatActivity() {
 
     private fun showDatePicker() {
         val calendar = Calendar.getInstance()
-        val year = calendar.get(Calendar.YEAR)
-        val month = calendar.get(Calendar.MONTH)
-        val day = calendar.get(Calendar.DAY_OF_MONTH)
-
-        val datePicker = DatePickerDialog(
+        DatePickerDialog(
             this,
-            { _, selectedYear, selectedMonth, selectedDay ->
-                val formatted = String.format("%04d-%02d-%02d", selectedYear, selectedMonth + 1, selectedDay)
-                binding.etDate.setText(formatted)
+            { _, year, month, dayOfMonth ->
+                val dateStr = String.format("%04d-%02d-%02d", year, month + 1, dayOfMonth)
+                binding.etDate.setText(dateStr)
             },
-            year, month, day
-        )
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        ).show()
+    }
 
-        datePicker.show()
+    private fun saveImageToInternalStorage(uri: Uri) {
+        val filename = "${UUID.randomUUID()}.jpg"
+        val file = File(filesDir, filename)
+
+        try {
+            val inputStream: InputStream? = contentResolver.openInputStream(uri)
+            val outputStream = FileOutputStream(file)
+            inputStream?.copyTo(outputStream)
+            inputStream?.close()
+            outputStream.close()
+            savedImagePath = file.absolutePath
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(this, "Failed to save image", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun saveExpense() {
@@ -82,18 +98,23 @@ class AddExpenseActivity : AppCompatActivity() {
             return
         }
 
-        val db = AppDatabase.getDatabase(this)
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+        if (userId.isNullOrEmpty()) {
+            Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val expense = Expense(
+            userId = userId,
+            date = date,
+            description = description,
+            category = category,
+            amount = amount,
+            photoPath = savedImagePath
+        )
 
         lifecycleScope.launch {
-            db.expenseDao().insertExpense(
-                Expense(
-                    date = date,
-                    description = description,
-                    category = category,
-                    amount = amount,
-                    photoPath = selectedPhotoUri?.toString()
-                )
-            )
+            AppDatabase.getDatabase(this@AddExpenseActivity).expenseDao().insertExpense(expense)
             Toast.makeText(this@AddExpenseActivity, "Expense saved!", Toast.LENGTH_SHORT).show()
             finish()
         }

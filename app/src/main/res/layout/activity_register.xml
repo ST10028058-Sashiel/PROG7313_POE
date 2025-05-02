@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="24dp"
-    android:background="#FAFAFA"
+
     tools:context=".ui.RegisterActivity">
 
     <!-- Logo -->
@@ -28,7 +29,7 @@
         android:text="Create your ExpenseNinja account"
         android:textSize="20sp"
         android:textStyle="bold"
-        android:textColor="#2C3E50"
+        android:textColor="?attr/colorOnBackground"
         app:layout_constraintTop_toBottomOf="@id/imgLogo"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -41,7 +42,7 @@
         android:layout_height="wrap_content"
         android:text="Quick and easy registration to track your expenses like a pro."
         android:textSize="15sp"
-        android:textColor="#616161"
+        android:textColor="?attr/colorOnBackground"
         android:gravity="center"
         app:layout_constraintTop_toBottomOf="@id/tvRegisterTitle"
         app:layout_constraintStart_toStartOf="parent"
@@ -55,7 +56,7 @@
         android:layout_height="wrap_content"
         android:hint="Enter Email"
         android:inputType="textEmailAddress"
-        android:textColor="#000000"
+        android:textColor="?attr/colorOnBackground"
         android:padding="14dp"
         android:background="@drawable/bg_edittext"
         app:layout_constraintTop_toBottomOf="@id/tvRegisterMessage"
@@ -71,7 +72,7 @@
         android:hint="Enter Password"
         android:inputType="textPassword"
         android:padding="14dp"
-        android:textColor="#000000"
+        android:textColor="?attr/colorOnBackground"
         android:background="@drawable/bg_edittext"
         app:layout_constraintTop_toBottomOf="@id/edtRegEmail"
         app:layout_constraintStart_toStartOf="parent"
@@ -85,8 +86,8 @@
         android:layout_height="wrap_content"
         android:text="Register"
         android:textStyle="bold"
-        android:textColor="#FFFFFF"
-        android:backgroundTint="#27AE60"
+        android:textColor="@android:color/white"
+        android:backgroundTint="?attr/colorPrimary"
         app:layout_constraintTop_toBottomOf="@id/edtRegPassword"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
