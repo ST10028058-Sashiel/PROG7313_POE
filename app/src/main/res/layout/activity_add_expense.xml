@@ -33,8 +33,7 @@
             android:padding="12dp"
             android:layout_marginBottom="12dp"
             android:background="@drawable/bg_input"
-            android:textColor="?android:attr/textColorPrimary"
-            />
+            android:textColor="?android:attr/textColorPrimary" />
 
         <EditText
             android:id="@+id/etDescription"
@@ -46,8 +45,7 @@
             android:padding="12dp"
             android:layout_marginBottom="12dp"
             android:background="@drawable/bg_input"
-            android:textColor="?android:attr/textColorPrimary"
-            />
+            android:textColor="?android:attr/textColorPrimary" />
 
         <EditText
             android:id="@+id/etCategory"
@@ -59,8 +57,7 @@
             android:padding="12dp"
             android:layout_marginBottom="12dp"
             android:background="@drawable/bg_input"
-            android:textColor="?android:attr/textColorPrimary"
-         />
+            android:textColor="?android:attr/textColorPrimary" />
 
         <EditText
             android:id="@+id/etAmount"
@@ -72,8 +69,7 @@
             android:padding="12dp"
             android:layout_marginBottom="24dp"
             android:background="@drawable/bg_input"
-            android:textColor="?android:attr/textColorPrimary"
-            />
+            android:textColor="?android:attr/textColorPrimary" />
 
         <ImageView
             android:id="@+id/imgPhoto"
@@ -90,6 +86,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Select Photo"
+            android:layout_marginBottom="12dp"
+            android:textColor="@android:color/white"
+            android:backgroundTint="?android:attr/colorAccent" />
+
+        <Button
+            android:id="@+id/btnTakePhoto"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Take Photo"
             android:layout_marginBottom="16dp"
             android:textColor="@android:color/white"
             android:backgroundTint="?android:attr/colorAccent" />

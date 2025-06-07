@@ -1,23 +1,54 @@
 package com.st10028058.prog7313_part2.ui
 
 import android.app.DatePickerDialog
+import android.content.Intent
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import com.st10028058.prog7313_part2.data.Expense
 import com.st10028058.prog7313_part2.databinding.ActivityAddExpenseBinding
+import java.io.File
+import java.io.IOException
+import java.text.SimpleDateFormat
 import java.util.*
 
 class AddExpenseActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityAddExpenseBinding
     private var selectedPhotoUri: Uri? = null
+    private var currentPhotoPath: String? = null
+
+    private val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        uri?.let {
+            selectedPhotoUri = it
+            binding.imgPhoto.setImageURI(it)
+        }
+    }
+
+    private val captureImage = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        if (success && currentPhotoPath != null) {
+            val file = File(currentPhotoPath!!)
+            selectedPhotoUri = FileProvider.getUriForFile(
+                this,
+                "${packageName}.provider",
+                file
+            )
+            binding.imgPhoto.setImageBitmap(BitmapFactory.decodeFile(currentPhotoPath))
+        } else {
+            Toast.makeText(this, "Camera cancelled", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,15 +57,13 @@ class AddExpenseActivity : AppCompatActivity() {
 
         binding.etDate.setOnClickListener { showDatePicker() }
 
-        val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-            uri?.let {
-                selectedPhotoUri = it
-                binding.imgPhoto.setImageURI(it)
-            }
-        }
-
         binding.btnSelectPhoto.setOnClickListener {
             pickImage.launch("image/*")
+        }
+
+        binding.btnTakePhoto.setOnClickListener {
+
+            dispatchTakePictureIntent()
         }
 
         binding.btnSave.setOnClickListener {
@@ -44,16 +73,32 @@ class AddExpenseActivity : AppCompatActivity() {
 
     private fun showDatePicker() {
         val calendar = Calendar.getInstance()
-        DatePickerDialog(
-            this,
-            { _, year, month, dayOfMonth ->
-                val dateStr = String.format("%04d-%02d-%02d", year, month + 1, dayOfMonth)
-                binding.etDate.setText(dateStr)
-            },
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH)
-        ).show()
+        DatePickerDialog(this, { _, year, month, day ->
+            binding.etDate.setText(String.format("%04d-%02d-%02d", year, month + 1, day))
+        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show()
+    }
+
+    private fun dispatchTakePictureIntent() {
+        try {
+            val photoFile = createImageFile()
+            val photoUri = FileProvider.getUriForFile(
+                this,
+                "${packageName}.provider",
+                photoFile
+            )
+            captureImage.launch(photoUri)
+        } catch (ex: IOException) {
+            Toast.makeText(this, "Error creating file for camera", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun createImageFile(): File {
+        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val storageDir: File = getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
+        return File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir).apply {
+            currentPhotoPath = absolutePath
+        }
     }
 
     private fun saveExpense() {
@@ -79,13 +124,11 @@ class AddExpenseActivity : AppCompatActivity() {
             return
         }
 
-        if (selectedPhotoUri != null) {
-            uploadPhotoToFirebase(selectedPhotoUri!!) { photoUrl ->
-                createExpenseInFirestore(userId, date, description, category, amount, photoUrl)
+        selectedPhotoUri?.let {
+            uploadPhotoToFirebase(it) { url ->
+                createExpenseInFirestore(userId, date, description, category, amount, url)
             }
-        } else {
-            createExpenseInFirestore(userId, date, description, category, amount, null)
-        }
+        } ?: createExpenseInFirestore(userId, date, description, category, amount, null)
     }
 
     private fun uploadPhotoToFirebase(uri: Uri, onUploaded: (String?) -> Unit) {
@@ -93,13 +136,8 @@ class AddExpenseActivity : AppCompatActivity() {
         val fileRef = FirebaseStorage.getInstance().reference.child(fileName)
 
         fileRef.putFile(uri)
-            .continueWithTask { task ->
-                if (!task.isSuccessful) throw task.exception!!
-                fileRef.downloadUrl
-            }
-            .addOnSuccessListener { downloadUrl ->
-                onUploaded(downloadUrl.toString())
-            }
+            .continueWithTask { task -> if (!task.isSuccessful) throw task.exception!!; fileRef.downloadUrl }
+            .addOnSuccessListener { downloadUrl -> onUploaded(downloadUrl.toString()) }
             .addOnFailureListener {
                 Toast.makeText(this, "Photo upload failed", Toast.LENGTH_SHORT).show()
                 onUploaded(null)
@@ -107,23 +145,11 @@ class AddExpenseActivity : AppCompatActivity() {
     }
 
     private fun createExpenseInFirestore(
-        userId: String,
-        date: String,
-        description: String,
-        category: String,
-        amount: Double,
-        photoUrl: String?
+        userId: String, date: String, description: String,
+        category: String, amount: Double, photoUrl: String?
     ) {
         val expenseId = Firebase.firestore.collection("expenses").document().id
-        val expense = Expense(
-            id = expenseId,
-            userId = userId,
-            date = date,
-            description = description,
-            category = category,
-            amount = amount,
-            photoPath = photoUrl
-        )
+        val expense = Expense(expenseId, userId, date, description, category, amount, photoUrl)
 
         Firebase.firestore.collection("expenses").document(expenseId)
             .set(expense)
@@ -136,6 +162,7 @@ class AddExpenseActivity : AppCompatActivity() {
             }
     }
 }
+
 
 //Code Attribution
 
