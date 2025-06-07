@@ -1,16 +1,14 @@
 package com.st10028058.prog7313_part2.data
-import androidx.room.Entity
-import androidx.room.PrimaryKey
 
-@Entity
+
 data class Expense(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val userId: String,
-    val date: String,
-    val description: String,
-    val category: String,
-    val amount: Double,
-    val photoPath: String? = null
+    var id: String = "",                 // Firestore Document ID
+    var userId: String = "",             // FirebaseAuth UID
+    var date: String = "",
+    var description: String = "",
+    var category: String = "",
+    var amount: Double = 0.0,
+    var photoPath: String? = null        // Firebase Storage URL
 )
 
 //Code Attribution

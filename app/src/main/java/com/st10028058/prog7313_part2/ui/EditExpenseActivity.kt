@@ -1,31 +1,30 @@
 package com.st10028058.prog7313_part2.ui
 
 import android.app.DatePickerDialog
-import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
-import com.st10028058.prog7313_part2.data.AppDatabase
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
 import com.st10028058.prog7313_part2.data.Expense
 import com.st10028058.prog7313_part2.databinding.ActivityEditExpenseBinding
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import java.util.*
 
 class EditExpenseActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityEditExpenseBinding
-    private var expenseId: Int = -1
-    private var photoPath: String? = null
+    private var documentId: String = ""
+    private var currentPhotoUrl: String? = null
+    private var selectedPhotoUri: Uri? = null
 
     private val pickImageLauncher =
         registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.GetContent()) { uri ->
             uri?.let {
-                photoPath = it.toString()
-                binding.imgPhoto.setImageURI(uri)
+                selectedPhotoUri = it
+                binding.imgPhoto.setImageURI(it)
             }
         }
 
@@ -41,24 +40,14 @@ class EditExpenseActivity : AppCompatActivity() {
             return
         }
 
-        expenseId = intent.getIntExtra("expense_id", -1)
-        val dao = AppDatabase.getDatabase(this).expenseDao()
-
-        CoroutineScope(Dispatchers.IO).launch {
-            val expense = dao.getExpenseById(expenseId)
-            if (expense != null) {
-                runOnUiThread {
-                    binding.etDate.setText(expense.date)
-                    binding.etDescription.setText(expense.description)
-                    binding.etCategory.setText(expense.category)
-                    binding.etAmount.setText(expense.amount.toString())
-                    photoPath = expense.photoPath
-                    if (!photoPath.isNullOrEmpty()) {
-                        binding.imgPhoto.setImageURI(Uri.parse(photoPath))
-                    }
-                }
-            }
+        documentId = intent.getStringExtra("expense_doc_id") ?: ""
+        if (documentId.isEmpty()) {
+            Toast.makeText(this, "Invalid expense reference", Toast.LENGTH_SHORT).show()
+            finish()
+            return
         }
+
+        loadExpenseData(documentId)
 
         binding.etDate.setOnClickListener {
             val calendar = Calendar.getInstance()
@@ -78,40 +67,103 @@ class EditExpenseActivity : AppCompatActivity() {
         }
 
         binding.btnSave.setOnClickListener {
-            val date = binding.etDate.text.toString().trim()
-            val desc = binding.etDescription.text.toString().trim()
-            val category = binding.etCategory.text.toString().trim()
-            val amount = binding.etAmount.text.toString().trim().toDoubleOrNull()
-
-            if (date.isEmpty() || desc.isEmpty() || category.isEmpty() || amount == null) {
-                Toast.makeText(this, "Please fill all fields correctly", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            val updatedExpense = Expense(
-                id = expenseId,
-                userId = userId,
-                date = date,
-                description = desc,
-                category = category,
-                amount = amount,
-                photoPath = photoPath
-            )
-
-            CoroutineScope(Dispatchers.IO).launch {
-                dao.insertExpense(updatedExpense)
-                runOnUiThread {
-                    Toast.makeText(this@EditExpenseActivity, "Expense updated!", Toast.LENGTH_SHORT).show()
-                    finish()
-                }
-            }
+            updateExpense(userId)
         }
 
         binding.btnBack.setOnClickListener {
             finish()
         }
     }
+
+    private fun loadExpenseData(docId: String) {
+        val db = Firebase.firestore
+        db.collection("expenses").document(docId).get()
+            .addOnSuccessListener { doc ->
+                val expense = doc.toObject(Expense::class.java)
+                if (expense != null) {
+                    binding.etDate.setText(expense.date)
+                    binding.etDescription.setText(expense.description)
+                    binding.etCategory.setText(expense.category)
+                    binding.etAmount.setText(expense.amount.toString())
+                    currentPhotoUrl = expense.photoPath
+                    expense.photoPath?.let {
+                        binding.imgPhoto.setImageURI(Uri.parse(it))
+                    }
+                }
+            }
+            .addOnFailureListener {
+                Toast.makeText(this, "Failed to load expense", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    private fun updateExpense(userId: String) {
+        val date = binding.etDate.text.toString().trim()
+        val desc = binding.etDescription.text.toString().trim()
+        val category = binding.etCategory.text.toString().trim()
+        val amount = binding.etAmount.text.toString().trim().toDoubleOrNull()
+
+        if (date.isEmpty() || desc.isEmpty() || category.isEmpty() || amount == null) {
+            Toast.makeText(this, "Please fill all fields correctly", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        if (selectedPhotoUri != null) {
+            uploadNewPhoto { url ->
+                saveUpdatedExpense(userId, date, desc, category, amount, url)
+            }
+        } else {
+            saveUpdatedExpense(userId, date, desc, category, amount, currentPhotoUrl)
+        }
+    }
+
+    private fun uploadNewPhoto(onUploaded: (String?) -> Unit) {
+        val fileRef = FirebaseStorage.getInstance().reference
+            .child("receipts/${UUID.randomUUID()}.jpg")
+
+        selectedPhotoUri?.let { uri ->
+            fileRef.putFile(uri)
+                .continueWithTask { task ->
+                    if (!task.isSuccessful) throw task.exception!!
+                    fileRef.downloadUrl
+                }
+                .addOnSuccessListener { onUploaded(it.toString()) }
+                .addOnFailureListener {
+                    Toast.makeText(this, "Photo upload failed", Toast.LENGTH_SHORT).show()
+                    onUploaded(null)
+                }
+        }
+    }
+
+    private fun saveUpdatedExpense(
+        userId: String,
+        date: String,
+        desc: String,
+        category: String,
+        amount: Double,
+        photoUrl: String?
+    ) {
+        val db = Firebase.firestore
+        val expense = Expense(
+            id = documentId,
+            userId = userId,
+            date = date,
+            description = desc,
+            category = category,
+            amount = amount,
+            photoPath = photoUrl
+        )
+
+        db.collection("expenses").document(documentId).set(expense)
+            .addOnSuccessListener {
+                Toast.makeText(this, "Expense updated!", Toast.LENGTH_SHORT).show()
+                finish()
+            }
+            .addOnFailureListener {
+                Toast.makeText(this, "Failed to update expense", Toast.LENGTH_SHORT).show()
+            }
+    }
 }
+
 //Code Attribution
 
 //# Code and support generated with the help of OpenAI's ChatGPT.

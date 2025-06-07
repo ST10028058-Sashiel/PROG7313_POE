@@ -3,66 +3,79 @@ package com.st10028058.prog7313_part2.ui
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.st10028058.prog7313_part2.data.AppDatabase
+import com.bumptech.glide.Glide
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import com.st10028058.prog7313_part2.data.Expense
 import com.st10028058.prog7313_part2.databinding.ActivityExpenseDetailBinding
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import java.util.*
 
 class ExpenseDetailActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityExpenseDetailBinding
+    private lateinit var documentId: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityExpenseDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val id = intent.getIntExtra("expense_id", -1)
-        val dao = AppDatabase.getDatabase(this).expenseDao()
+        documentId = intent.getStringExtra("expense_doc_id") ?: ""
+        if (documentId.isEmpty()) {
+            Toast.makeText(this, "Invalid expense ID", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
 
-        CoroutineScope(Dispatchers.IO).launch {
-            val expense = dao.getExpenseById(id)
-            if (expense == null) {
-                runOnUiThread {
-                    Toast.makeText(this@ExpenseDetailActivity, "Expense not found", Toast.LENGTH_SHORT).show()
-                    finish()
-                }
-                return@launch
-            }
+        loadExpense(documentId)
 
-            runOnUiThread {
-                binding.tvDate.text = expense.date
-                binding.tvDescription.text = expense.description
-                binding.tvCategory.text = expense.category
-                binding.tvAmount.text = String.format(Locale.getDefault(), "R %.2f", expense.amount)
-
-                if (!expense.photoPath.isNullOrEmpty()) {
-                    binding.imgPhoto.setImageURI(Uri.parse(expense.photoPath))
-                    binding.tvNoImage.visibility = android.view.View.GONE
-                } else {
-                    binding.imgPhoto.setImageResource(android.R.drawable.ic_menu_report_image)
-                    binding.tvNoImage.visibility = android.view.View.VISIBLE
-                }
-
-                binding.btnEdit.setOnClickListener {
-                    val intent = Intent(this@ExpenseDetailActivity, EditExpenseActivity::class.java)
-                    intent.putExtra("edit_mode", true)
-                    intent.putExtra("expense_id", id)
-                    startActivity(intent)
-                    finish()
-                }
-            }
+        binding.btnEdit.setOnClickListener {
+            val intent = Intent(this, EditExpenseActivity::class.java)
+            intent.putExtra("expense_doc_id", documentId)
+            startActivity(intent)
+            finish()
         }
 
         binding.btnBack.setOnClickListener {
             finish()
         }
     }
+
+    private fun loadExpense(docId: String) {
+        val db = Firebase.firestore
+        db.collection("expenses").document(docId).get()
+            .addOnSuccessListener { document ->
+                val expense = document.toObject(Expense::class.java)
+                if (expense != null) {
+                    binding.tvDate.text = expense.date
+                    binding.tvDescription.text = expense.description
+                    binding.tvCategory.text = expense.category
+                    binding.tvAmount.text = String.format(Locale.getDefault(), "R %.2f", expense.amount)
+
+                    if (!expense.photoPath.isNullOrEmpty()) {
+                        Glide.with(this)
+                            .load(expense.photoPath)
+                            .into(binding.imgPhoto)
+                        binding.tvNoImage.visibility = View.GONE
+                    } else {
+                        binding.imgPhoto.setImageResource(android.R.drawable.ic_menu_report_image)
+                        binding.tvNoImage.visibility = View.VISIBLE
+                    }
+                } else {
+                    Toast.makeText(this, "Expense not found", Toast.LENGTH_SHORT).show()
+                    finish()
+                }
+            }
+            .addOnFailureListener {
+                Toast.makeText(this, "Failed to load expense", Toast.LENGTH_SHORT).show()
+                finish()
+            }
+    }
 }
+
 //Code Attribution
 
 //# Code and support generated with the help of OpenAI's ChatGPT.

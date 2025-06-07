@@ -1,13 +1,12 @@
 package com.st10028058.prog7313_part2.ui.adapter
 
-import android.net.Uri
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.st10028058.prog7313_part2.R
+import com.bumptech.glide.Glide
 import com.st10028058.prog7313_part2.data.Expense
 import com.st10028058.prog7313_part2.databinding.ItemExpenseBinding
-import java.io.File
+import com.st10028058.prog7313_part2.R
 
 class ExpenseAdapter(
     private val onItemClick: (Expense) -> Unit
@@ -32,25 +31,15 @@ class ExpenseAdapter(
             tvDescription.text = expense.description
             tvCategory.text = expense.category
             tvAmount.text = String.format("R %.2f", expense.amount)
-            if (!expense.photoPath.isNullOrEmpty()) {
-                val imageFile = File(expense.photoPath)
-                if (imageFile.exists()) {
-                    imgExpense.setImageURI(Uri.fromFile(imageFile))
-                } else {
-                    imgExpense.setImageResource(android.R.drawable.ic_menu_gallery)
-                }
-            } else {
-                imgExpense.setImageResource(android.R.drawable.ic_menu_gallery)
-            }
 
+            Glide.with(imgExpense.context)
+                .load(expense.photoPath ?: "")
+                .placeholder(R.drawable.ic_launcher_foreground) // fallback placeholder image
+                .error(R.drawable.ic_launcher_foreground)
+                .into(imgExpense)
 
-            root.setOnClickListener {
-                onItemClick.invoke(expense)
-            }
-
-            imgExpense.setOnClickListener {
-                onItemClick.invoke(expense)
-            }
+            root.setOnClickListener { onItemClick(expense) }
+            imgExpense.setOnClickListener { onItemClick(expense) }
         }
     }
 

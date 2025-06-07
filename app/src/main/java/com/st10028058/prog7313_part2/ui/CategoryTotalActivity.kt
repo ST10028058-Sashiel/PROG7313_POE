@@ -6,13 +6,14 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.auth.FirebaseAuth
-import com.st10028058.prog7313_part2.data.AppDatabase
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import com.st10028058.prog7313_part2.data.CategoryTotal
+import com.st10028058.prog7313_part2.data.Expense
 import com.st10028058.prog7313_part2.databinding.ActivityCategoryTotalBinding
 import com.st10028058.prog7313_part2.ui.adapter.CategoryTotalAdapter
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import java.util.Calendar
+import java.util.*
+import kotlin.collections.HashMap
 
 class CategoryTotalActivity : AppCompatActivity() {
 
@@ -30,27 +31,11 @@ class CategoryTotalActivity : AppCompatActivity() {
         val calendar = Calendar.getInstance()
 
         binding.etStartDate.setOnClickListener {
-            DatePickerDialog(this,
-                { _, year, month, day ->
-                    val date = String.format("%04d-%02d-%02d", year, month + 1, day)
-                    binding.etStartDate.setText(date)
-                },
-                calendar.get(Calendar.YEAR),
-                calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH)
-            ).show()
+            showDatePicker { date -> binding.etStartDate.setText(date) }
         }
 
         binding.etEndDate.setOnClickListener {
-            DatePickerDialog(this,
-                { _, year, month, day ->
-                    val date = String.format("%04d-%02d-%02d", year, month + 1, day)
-                    binding.etEndDate.setText(date)
-                },
-                calendar.get(Calendar.YEAR),
-                calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH)
-            ).show()
+            showDatePicker { date -> binding.etEndDate.setText(date) }
         }
 
         binding.btnFilter.setOnClickListener {
@@ -68,20 +53,53 @@ class CategoryTotalActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            val dao = AppDatabase.getDatabase(this).expenseDao()
-            CoroutineScope(Dispatchers.IO).launch {
-                val totals = dao.getCategoryTotals(userId, startDate, endDate)
-                runOnUiThread {
-                    adapter.submitList(totals)
-                }
-            }
+            fetchCategoryTotalsFromFirestore(userId, startDate, endDate)
         }
 
         binding.btnBack.setOnClickListener {
             finish()
         }
     }
+
+    private fun showDatePicker(onDateSet: (String) -> Unit) {
+        val calendar = Calendar.getInstance()
+        DatePickerDialog(
+            this,
+            { _, year, month, day ->
+                val date = String.format("%04d-%02d-%02d", year, month + 1, day)
+                onDateSet(date)
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        ).show()
+    }
+
+    private fun fetchCategoryTotalsFromFirestore(userId: String, startDate: String, endDate: String) {
+        val db = Firebase.firestore
+
+        db.collection("expenses")
+            .whereEqualTo("userId", userId)
+            .get()
+            .addOnSuccessListener { result ->
+                val expenses = result.toObjects(Expense::class.java)
+                    .filter { it.date >= startDate && it.date <= endDate }
+
+                val categoryMap = HashMap<String, Double>()
+                for (expense in expenses) {
+                    val currentTotal = categoryMap[expense.category] ?: 0.0
+                    categoryMap[expense.category] = currentTotal + expense.amount
+                }
+
+                val categoryTotals = categoryMap.map { CategoryTotal(it.key, it.value) }
+                adapter.submitList(categoryTotals)
+            }
+            .addOnFailureListener {
+                Toast.makeText(this, "Failed to fetch data", Toast.LENGTH_SHORT).show()
+            }
+    }
 }
+
 //Code Attribution
 
 //# Code and support generated with the help of OpenAI's ChatGPT.

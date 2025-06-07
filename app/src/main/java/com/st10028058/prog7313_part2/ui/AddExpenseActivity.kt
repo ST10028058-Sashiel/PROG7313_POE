@@ -1,43 +1,35 @@
 package com.st10028058.prog7313_part2.ui
 
 import android.app.DatePickerDialog
-import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import com.google.firebase.auth.FirebaseAuth
-import com.st10028058.prog7313_part2.data.AppDatabase
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
 import com.st10028058.prog7313_part2.data.Expense
 import com.st10028058.prog7313_part2.databinding.ActivityAddExpenseBinding
-import kotlinx.coroutines.launch
-import java.io.File
-import java.io.FileOutputStream
-import java.io.InputStream
 import java.util.*
 
 class AddExpenseActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityAddExpenseBinding
     private var selectedPhotoUri: Uri? = null
-    private var savedImagePath: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityAddExpenseBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.etDate.setOnClickListener {
-            showDatePicker()
-        }
+        binding.etDate.setOnClickListener { showDatePicker() }
 
         val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-            if (uri != null) {
-                selectedPhotoUri = uri
-                binding.imgPhoto.setImageURI(uri)
-                saveImageToInternalStorage(uri)
+            uri?.let {
+                selectedPhotoUri = it
+                binding.imgPhoto.setImageURI(it)
             }
         }
 
@@ -64,23 +56,6 @@ class AddExpenseActivity : AppCompatActivity() {
         ).show()
     }
 
-    private fun saveImageToInternalStorage(uri: Uri) {
-        val filename = "${UUID.randomUUID()}.jpg"
-        val file = File(filesDir, filename)
-
-        try {
-            val inputStream: InputStream? = contentResolver.openInputStream(uri)
-            val outputStream = FileOutputStream(file)
-            inputStream?.copyTo(outputStream)
-            inputStream?.close()
-            outputStream.close()
-            savedImagePath = file.absolutePath
-        } catch (e: Exception) {
-            e.printStackTrace()
-            Toast.makeText(this, "Failed to save image", Toast.LENGTH_SHORT).show()
-        }
-    }
-
     private fun saveExpense() {
         val date = binding.etDate.text.toString().trim()
         val description = binding.etDescription.text.toString().trim()
@@ -104,22 +79,64 @@ class AddExpenseActivity : AppCompatActivity() {
             return
         }
 
+        if (selectedPhotoUri != null) {
+            uploadPhotoToFirebase(selectedPhotoUri!!) { photoUrl ->
+                createExpenseInFirestore(userId, date, description, category, amount, photoUrl)
+            }
+        } else {
+            createExpenseInFirestore(userId, date, description, category, amount, null)
+        }
+    }
+
+    private fun uploadPhotoToFirebase(uri: Uri, onUploaded: (String?) -> Unit) {
+        val fileName = "receipts/${UUID.randomUUID()}.jpg"
+        val fileRef = FirebaseStorage.getInstance().reference.child(fileName)
+
+        fileRef.putFile(uri)
+            .continueWithTask { task ->
+                if (!task.isSuccessful) throw task.exception!!
+                fileRef.downloadUrl
+            }
+            .addOnSuccessListener { downloadUrl ->
+                onUploaded(downloadUrl.toString())
+            }
+            .addOnFailureListener {
+                Toast.makeText(this, "Photo upload failed", Toast.LENGTH_SHORT).show()
+                onUploaded(null)
+            }
+    }
+
+    private fun createExpenseInFirestore(
+        userId: String,
+        date: String,
+        description: String,
+        category: String,
+        amount: Double,
+        photoUrl: String?
+    ) {
+        val expenseId = Firebase.firestore.collection("expenses").document().id
         val expense = Expense(
+            id = expenseId,
             userId = userId,
             date = date,
             description = description,
             category = category,
             amount = amount,
-            photoPath = savedImagePath
+            photoPath = photoUrl
         )
 
-        lifecycleScope.launch {
-            AppDatabase.getDatabase(this@AddExpenseActivity).expenseDao().insertExpense(expense)
-            Toast.makeText(this@AddExpenseActivity, "Expense saved!", Toast.LENGTH_SHORT).show()
-            finish()
-        }
+        Firebase.firestore.collection("expenses").document(expenseId)
+            .set(expense)
+            .addOnSuccessListener {
+                Toast.makeText(this, "Expense saved!", Toast.LENGTH_SHORT).show()
+                finish()
+            }
+            .addOnFailureListener {
+                Toast.makeText(this, "Failed to save expense", Toast.LENGTH_SHORT).show()
+            }
     }
 }
+
 //Code Attribution
 
 //# Code and support generated with the help of OpenAI's ChatGPT.

@@ -1,19 +1,36 @@
 package com.st10028058.prog7313_part2.ui
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import com.st10028058.prog7313_part2.R
 import com.st10028058.prog7313_part2.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private val auth = FirebaseAuth.getInstance()
+    private val db = Firebase.firestore
+    private var expenseListener: ListenerRegistration? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        createNotificationChannel()
+        requestNotificationPermission()
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -34,50 +51,124 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, CategoryTotalActivity::class.java))
         }
 
+        binding.btnCategoryGraph.setOnClickListener {
+            startActivity(Intent(this, SpendingGraphActivity::class.java))
+        }
+
+        binding.btnViewMonthlyProgress.setOnClickListener {
+            startActivity(Intent(this, MonthlySpendingActivity::class.java))
+        }
+
         binding.btnLogout.setOnClickListener {
             auth.signOut()
-            val intent = Intent(this, LoginActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
+            startActivity(Intent(this, LoginActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            })
             finish()
         }
     }
 
     override fun onResume() {
         super.onResume()
+        setupBudgetText()
+        startExpenseAlerts()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        expenseListener?.remove()
+    }
+
+    private fun setupBudgetText() {
         val user = auth.currentUser
         val email = user?.email ?: "Guest"
         binding.tvWelcome.text = "Welcome back, $email!"
 
-        val prefs = getSharedPreferences("budget_prefs_${user?.uid}", Context.MODE_PRIVATE)
-        val min = prefs.getFloat("min_goal", -1f)
-        val max = prefs.getFloat("max_goal", -1f)
+        user?.uid?.let { uid ->
+            db.collection("goals").document(uid).get()
+                .addOnSuccessListener { doc ->
+                    val min = doc.getDouble("min_goal") ?: 0.0
+                    val max = doc.getDouble("max_goal") ?: 0.0
+                    binding.tvBudgetGoals.text = if (min == 0.0 && max == 0.0) {
+                        "Monthly Budget Goals: Not Set"
+                    } else {
+                        "Monthly Budget Goals:\nMin: R%.2f | Max: R%.2f".format(min, max)
+                    }
+                }
+                .addOnFailureListener {
+                    binding.tvBudgetGoals.text = "Monthly Budget Goals: Not Set"
+                }
+        }
+    }
 
-        binding.tvBudgetGoals.text = if (min == -1f || max == -1f) {
-            "Monthly Budget Goals: Not Set"
-        } else {
-            "Monthly Budget Goals:\nMin: R%.2f | Max: R%.2f".format(min, max)
+    private fun startExpenseAlerts() {
+        val uid = auth.currentUser?.uid.orEmpty()
+        db.collection("goals").document(uid).get()
+            .addOnSuccessListener { doc ->
+                val minGoal = doc.getDouble("min_goal") ?: 0.0
+                val maxGoal = doc.getDouble("max_goal") ?: 0.0
+
+                expenseListener?.remove()
+                expenseListener = db.collection("expenses")
+                    .whereEqualTo("userId", uid)
+                    .addSnapshotListener { snaps, _ ->
+                        val total = snaps?.sumOf { it.getDouble("amount") ?: 0.0 } ?: 0.0
+                        evaluateBudget(total, minGoal, maxGoal)
+                    }
+            }
+    }
+
+    private fun evaluateBudget(total: Double, min: Double, max: Double) {
+        when {
+            max > 0 && total >= max -> sendNotification(
+                "🚨 Over Budget!",
+                "You've spent R%.2f (max R%.2f)".format(total, max)
+            )
+            min > 0 && total >= min -> sendNotification(
+                "✅ Budget Milestone",
+                "You've reached your min goal: R%.2f".format(total)
+            )
+        }
+    }
+
+    private fun sendNotification(title: String, msg: String) {
+        val intent = Intent(this, MainActivity::class.java)
+        val pending = PendingIntent.getActivity(
+            this, 0, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val builder = NotificationCompat.Builder(this, "budget_channel")
+            .setSmallIcon(R.drawable.ic_alert)
+            .setContentTitle(title)
+            .setContentText(msg)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .setContentIntent(pending)
+
+        NotificationManagerCompat.from(this).notify(System.currentTimeMillis().toInt(), builder.build())
+    }
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                "budget_channel",
+                "Budget Alerts",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Notify when budget limits are reached"
+            }
+
+            getSystemService(NotificationManager::class.java)
+                .createNotificationChannel(channel)
+        }
+    }
+
+    private fun requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 1001)
+            }
         }
     }
 }
-//Code Attribution
-
-//# Code and support generated with the help of OpenAI's ChatGPT.
-//ChatGPT (OpenAI GPT-4)
-
-//Kotlin Official Documentation
-//Code patterns and language features were referenced from the official Kotlin documentation, including examples related to classes, coroutines, and Android development.
-//Source:
-//JetBrains, 2025. Kotlin Programming Language Documentation [online] Available at: https://kotlinlang.org/docs/home.html [Accessed 2 May 2025].
-
-// W3schools / /https://www.w3schools.com/kotlin/index.php
-
-//Stack Overflow
-//Practical coding solutions for common errors and Firebase integration were adapted from community answers on Stack Overflow.
-//Source:
-//Stack Overflow, 2025. How to implement Firebase login in Kotlin? [online] Available at: https://stackoverflow.com [Accessed 2 May 2025].
-
-//Firebase Documentation (by Google)
-//The Firebase Authentication, Realtime Database, and Firestore implementation guides were followed to correctly integrate user authentication and data handling.
-//Source:
-//Google, 2025. Firebase Documentation – Android Authentication [online] Available at: https://firebase.google.com/docs/auth/android/start [Accessed 2 May 2025].

@@ -7,13 +7,12 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.auth.FirebaseAuth
-import com.st10028058.prog7313_part2.data.AppDatabase
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import com.st10028058.prog7313_part2.data.Expense
 import com.st10028058.prog7313_part2.databinding.ActivityFilterExpensesBinding
 import com.st10028058.prog7313_part2.ui.adapter.ExpenseAdapter
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import java.util.Calendar
+import java.util.*
 
 class FilterExpensesActivity : AppCompatActivity() {
 
@@ -27,7 +26,7 @@ class FilterExpensesActivity : AppCompatActivity() {
 
         adapter = ExpenseAdapter { expense ->
             val intent = Intent(this, ExpenseDetailActivity::class.java)
-            intent.putExtra("expense_id", expense.id)
+            intent.putExtra("expense_doc_id", expense.id)
             startActivity(intent)
         }
 
@@ -37,27 +36,11 @@ class FilterExpensesActivity : AppCompatActivity() {
         val calendar = Calendar.getInstance()
 
         binding.etStartDate.setOnClickListener {
-            DatePickerDialog(this,
-                { _, year, month, day ->
-                    val date = String.format("%04d-%02d-%02d", year, month + 1, day)
-                    binding.etStartDate.setText(date)
-                },
-                calendar.get(Calendar.YEAR),
-                calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH)
-            ).show()
+            showDatePicker { date -> binding.etStartDate.setText(date) }
         }
 
         binding.etEndDate.setOnClickListener {
-            DatePickerDialog(this,
-                { _, year, month, day ->
-                    val date = String.format("%04d-%02d-%02d", year, month + 1, day)
-                    binding.etEndDate.setText(date)
-                },
-                calendar.get(Calendar.YEAR),
-                calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH)
-            ).show()
+            showDatePicker { date -> binding.etEndDate.setText(date) }
         }
 
         binding.btnFilter.setOnClickListener {
@@ -75,20 +58,44 @@ class FilterExpensesActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            val dao = AppDatabase.getDatabase(this).expenseDao()
-            CoroutineScope(Dispatchers.IO).launch {
-                val expenses = dao.getExpensesInRange(userId, startDate, endDate)
-                runOnUiThread {
-                    adapter.submitList(expenses)
-                }
-            }
+            filterExpensesByDateRange(userId, startDate, endDate)
         }
 
         binding.btnBack.setOnClickListener {
             finish()
         }
     }
+
+    private fun showDatePicker(onDateSet: (String) -> Unit) {
+        val calendar = Calendar.getInstance()
+        DatePickerDialog(
+            this,
+            { _, year, month, day ->
+                val date = String.format("%04d-%02d-%02d", year, month + 1, day)
+                onDateSet(date)
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        ).show()
+    }
+
+    private fun filterExpensesByDateRange(userId: String, startDate: String, endDate: String) {
+        val db = Firebase.firestore
+        db.collection("expenses")
+            .whereEqualTo("userId", userId)
+            .get()
+            .addOnSuccessListener { result ->
+                val filtered = result.toObjects(Expense::class.java)
+                    .filter { it.date >= startDate && it.date <= endDate }
+                adapter.submitList(filtered)
+            }
+            .addOnFailureListener {
+                Toast.makeText(this, "Failed to load expenses", Toast.LENGTH_SHORT).show()
+            }
+    }
 }
+
 //Code Attribution
 
 //# Code and support generated with the help of OpenAI's ChatGPT.

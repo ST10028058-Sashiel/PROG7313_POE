@@ -21,7 +21,7 @@ class CategoryTotalAdapter : RecyclerView.Adapter<CategoryTotalAdapter.TotalView
     override fun onBindViewHolder(holder: TotalViewHolder, position: Int) {
         val item = items[position]
         holder.binding.tvCategory.text = item.category
-        holder.binding.tvTotal.text = String.format("R %.2f", item.total)
+        holder.binding.tvTotal.text = String.format("R %.2f", item.totalAmount)
     }
 
     override fun getItemCount() = items.size
@@ -32,6 +32,7 @@ class CategoryTotalAdapter : RecyclerView.Adapter<CategoryTotalAdapter.TotalView
         notifyDataSetChanged()
     }
 }
+
 
 //Code Attribution
 

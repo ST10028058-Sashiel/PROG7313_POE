@@ -1,9 +1,10 @@
 package com.st10028058.prog7313_part2.data
 
 data class CategoryTotal(
-    val category: String,
-    val total: Double
+    val category: String = "",
+    val totalAmount: Double = 0.0
 )
+
 //Code Attribution
 
 //# Code and support generated with the help of OpenAI's ChatGPT.

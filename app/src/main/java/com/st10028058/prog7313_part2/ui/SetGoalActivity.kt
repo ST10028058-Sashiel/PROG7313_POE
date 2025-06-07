@@ -1,15 +1,17 @@
 package com.st10028058.prog7313_part2.ui
 
-import android.content.Context
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import com.st10028058.prog7313_part2.databinding.ActivitySetGoalBinding
 
 class SetGoalActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySetGoalBinding
+    private val db = Firebase.firestore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,34 +25,45 @@ class SetGoalActivity : AppCompatActivity() {
             return
         }
 
-        val prefs = getSharedPreferences("budget_prefs_$userId", Context.MODE_PRIVATE)
+        // Load from Firestore
+        db.collection("goals").document(userId).get()
+            .addOnSuccessListener { doc ->
+                val minGoal = doc.getDouble("min_goal")?.toFloat()
+                val maxGoal = doc.getDouble("max_goal")?.toFloat()
 
-        // Load saved values
-        val minGoal = prefs.getFloat("min_goal", -1f)
-        val maxGoal = prefs.getFloat("max_goal", -1f)
+                if (minGoal != null) binding.etMinGoal.setText(minGoal.toString())
+                if (maxGoal != null) binding.etMaxGoal.setText(maxGoal.toString())
+            }
+            .addOnFailureListener {
+                Toast.makeText(this, "Failed to load goals", Toast.LENGTH_SHORT).show()
+            }
 
-        if (minGoal != -1f) binding.etMinGoal.setText(minGoal.toString())
-        if (maxGoal != -1f) binding.etMaxGoal.setText(maxGoal.toString())
-
-        // Save on click
+        // Save to Firestore
         binding.btnSaveGoals.setOnClickListener {
             val min = binding.etMinGoal.text.toString().toFloatOrNull()
             val max = binding.etMaxGoal.text.toString().toFloatOrNull()
 
             if (min != null && max != null && min <= max) {
-                prefs.edit()
-                    .putFloat("min_goal", min)
-                    .putFloat("max_goal", max)
-                    .apply()
+                val goalData = mapOf(
+                    "min_goal" to min,
+                    "max_goal" to max
+                )
 
-                Toast.makeText(this, "Goals saved!", Toast.LENGTH_SHORT).show()
-                finish()
+                db.collection("goals").document(userId).set(goalData)
+                    .addOnSuccessListener {
+                        Toast.makeText(this, "Goals saved!", Toast.LENGTH_SHORT).show()
+                        finish()
+                    }
+                    .addOnFailureListener {
+                        Toast.makeText(this, "Failed to save goals", Toast.LENGTH_SHORT).show()
+                    }
             } else {
                 Toast.makeText(this, "Invalid input. Min must be ≤ Max.", Toast.LENGTH_SHORT).show()
             }
         }
     }
 }
+
 //Code Attribution
 
 //# Code and support generated with the help of OpenAI's ChatGPT.
