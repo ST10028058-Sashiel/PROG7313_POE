@@ -1,5 +1,6 @@
 package com.st10028058.prog7313_part2.ui
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
@@ -33,7 +34,14 @@ class MonthlySpendingActivity : AppCompatActivity() {
             binding.tvMonthlyStatus.text = "Checking..."
             binding.btnRefresh.isEnabled = false
             loadGoalsThenSpending()
+
+
         }
+        binding.btnBackDashboard.setOnClickListener {
+            startActivity(Intent(this, MainActivity::class.java))
+            finish()
+        }
+
     }
 
     private fun loadGoalsThenSpending() {

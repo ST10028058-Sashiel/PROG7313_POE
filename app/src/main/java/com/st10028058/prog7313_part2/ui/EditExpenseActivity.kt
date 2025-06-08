@@ -4,7 +4,9 @@ import android.app.DatePickerDialog
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -16,25 +18,24 @@ import java.util.*
 class EditExpenseActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityEditExpenseBinding
-    private var documentId: String = ""
+    private lateinit var documentId: String
     private var currentPhotoUrl: String? = null
-    private var selectedPhotoUri: Uri? = null
+    private var selectedImageUri: Uri? = null
 
-    private val pickImageLauncher =
-        registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.GetContent()) { uri ->
-            uri?.let {
-                selectedPhotoUri = it
-                binding.imgPhoto.setImageURI(it)
-            }
+    private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let {
+            selectedImageUri = it
+            binding.imgPhoto.setImageURI(it)
         }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityEditExpenseBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val userId = FirebaseAuth.getInstance().currentUser?.uid
-        if (userId == null) {
+        val user = FirebaseAuth.getInstance().currentUser
+        if (user == null) {
             Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show()
             finish()
             return
@@ -42,23 +43,21 @@ class EditExpenseActivity : AppCompatActivity() {
 
         documentId = intent.getStringExtra("expense_doc_id") ?: ""
         if (documentId.isEmpty()) {
-            Toast.makeText(this, "Invalid expense reference", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "No valid expense ID provided", Toast.LENGTH_SHORT).show()
             finish()
             return
         }
 
-        loadExpenseData(documentId)
+        loadExpenseData()
 
         binding.etDate.setOnClickListener {
-            val calendar = Calendar.getInstance()
             DatePickerDialog(this,
-                { _, year, month, day ->
-                    val selectedDate = String.format("%04d-%02d-%02d", year, month + 1, day)
-                    binding.etDate.setText(selectedDate)
+                { _, y, m, d ->
+                    binding.etDate.setText(String.format("%04d-%02d-%02d", y, m + 1, d))
                 },
-                calendar.get(Calendar.YEAR),
-                calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH)
+                Calendar.getInstance().get(Calendar.YEAR),
+                Calendar.getInstance().get(Calendar.MONTH),
+                Calendar.getInstance().get(Calendar.DAY_OF_MONTH)
             ).show()
         }
 
@@ -67,32 +66,28 @@ class EditExpenseActivity : AppCompatActivity() {
         }
 
         binding.btnSave.setOnClickListener {
-            updateExpense(userId)
+            updateExpense(user.uid)
         }
 
-        binding.btnBack.setOnClickListener {
-            finish()
-        }
+        binding.btnBack.setOnClickListener { finish() }
     }
 
-    private fun loadExpenseData(docId: String) {
-        val db = Firebase.firestore
-        db.collection("expenses").document(docId).get()
+    private fun loadExpenseData() {
+        Firebase.firestore.collection("expenses").document(documentId).get()
             .addOnSuccessListener { doc ->
-                val expense = doc.toObject(Expense::class.java)
-                if (expense != null) {
-                    binding.etDate.setText(expense.date)
-                    binding.etDescription.setText(expense.description)
-                    binding.etCategory.setText(expense.category)
-                    binding.etAmount.setText(expense.amount.toString())
-                    currentPhotoUrl = expense.photoPath
-                    expense.photoPath?.let {
+                doc.toObject(Expense::class.java)?.let { exp ->
+                    binding.etDate.setText(exp.date)
+                    binding.etDescription.setText(exp.description)
+                    binding.etCategory.setText(exp.category)
+                    binding.etAmount.setText(exp.amount.toString())
+                    currentPhotoUrl = exp.photoPath
+                    exp.photoPath?.let {
                         binding.imgPhoto.setImageURI(Uri.parse(it))
                     }
                 }
             }
             .addOnFailureListener {
-                Toast.makeText(this, "Failed to load expense", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Error loading expense", Toast.LENGTH_SHORT).show()
             }
     }
 
@@ -100,49 +95,38 @@ class EditExpenseActivity : AppCompatActivity() {
         val date = binding.etDate.text.toString().trim()
         val desc = binding.etDescription.text.toString().trim()
         val category = binding.etCategory.text.toString().trim()
-        val amount = binding.etAmount.text.toString().trim().toDoubleOrNull()
+        val amount = binding.etAmount.text.toString().toDoubleOrNull()
 
         if (date.isEmpty() || desc.isEmpty() || category.isEmpty() || amount == null) {
-            Toast.makeText(this, "Please fill all fields correctly", Toast.LENGTH_SHORT).show()
-            return
+            return Toast.makeText(this, "Fill in all fields correctly", Toast.LENGTH_SHORT).show()
         }
 
-        if (selectedPhotoUri != null) {
-            uploadNewPhoto { url ->
-                saveUpdatedExpense(userId, date, desc, category, amount, url)
-            }
+        if (selectedImageUri != null) {
+            uploadPhotoAndSave(userId, date, desc, category, amount)
         } else {
-            saveUpdatedExpense(userId, date, desc, category, amount, currentPhotoUrl)
+            saveExpense(userId, date, desc, category, amount, currentPhotoUrl)
         }
     }
 
-    private fun uploadNewPhoto(onUploaded: (String?) -> Unit) {
-        val fileRef = FirebaseStorage.getInstance().reference
-            .child("receipts/${UUID.randomUUID()}.jpg")
-
-        selectedPhotoUri?.let { uri ->
-            fileRef.putFile(uri)
+    private fun uploadPhotoAndSave(userId: String, date: String, desc: String, category: String, amount: Double) {
+        val storageRef = FirebaseStorage.getInstance()
+            .reference.child("receipts/${UUID.randomUUID()}.jpg")
+        selectedImageUri?.let { uri ->
+            storageRef.putFile(uri)
                 .continueWithTask { task ->
                     if (!task.isSuccessful) throw task.exception!!
-                    fileRef.downloadUrl
+                    storageRef.downloadUrl
                 }
-                .addOnSuccessListener { onUploaded(it.toString()) }
+                .addOnSuccessListener { downloadUri ->
+                    saveExpense(userId, date, desc, category, amount, downloadUri.toString())
+                }
                 .addOnFailureListener {
                     Toast.makeText(this, "Photo upload failed", Toast.LENGTH_SHORT).show()
-                    onUploaded(null)
                 }
         }
     }
 
-    private fun saveUpdatedExpense(
-        userId: String,
-        date: String,
-        desc: String,
-        category: String,
-        amount: Double,
-        photoUrl: String?
-    ) {
-        val db = Firebase.firestore
+    private fun saveExpense(userId: String, date: String, desc: String, category: String, amount: Double, photoUrl: String?) {
         val expense = Expense(
             id = documentId,
             userId = userId,
@@ -152,17 +136,17 @@ class EditExpenseActivity : AppCompatActivity() {
             amount = amount,
             photoPath = photoUrl
         )
-
-        db.collection("expenses").document(documentId).set(expense)
+        Firebase.firestore.collection("expenses").document(documentId).set(expense)
             .addOnSuccessListener {
                 Toast.makeText(this, "Expense updated!", Toast.LENGTH_SHORT).show()
                 finish()
             }
             .addOnFailureListener {
-                Toast.makeText(this, "Failed to update expense", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Update failed", Toast.LENGTH_SHORT).show()
             }
     }
 }
+
 
 //Code Attribution
 

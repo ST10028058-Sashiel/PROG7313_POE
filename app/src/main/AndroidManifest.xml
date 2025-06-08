@@ -5,7 +5,8 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
 
     <application
@@ -18,7 +19,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.PROG7313_Part2"
         tools:targetApi="31">
-
+        <activity
+            android:name=".ui.ExportActivity"
+            android:exported="false" />
         <!-- FileProvider for camera image sharing -->
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -30,22 +33,45 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
-        <activity android:name=".ui.MonthlySpendingActivity" android:exported="false" />
-        <activity android:name=".ui.SpendingGraphActivity" android:exported="false" />
-        <activity android:name=".ui.EditExpenseActivity" android:exported="false" />
-        <activity android:name=".ui.ExpenseDetailActivity" android:exported="false" />
-        <activity android:name=".ui.CategoryTotalActivity" android:exported="false" />
-        <activity android:name=".ui.FilterExpensesActivity" android:exported="false" />
-        <activity android:name=".ui.SetGoalActivity" android:exported="false" />
-        <activity android:name=".ui.AddExpenseActivity" android:exported="false" />
-        <activity android:name=".ui.RegisterActivity" android:exported="false" />
-        <activity android:name=".ui.MainActivity" android:exported="true" />
-        <activity android:name=".ui.LoginActivity" android:exported="true">
+        <activity
+            android:name=".ui.MonthlySpendingActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.SpendingGraphActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.EditExpenseActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.ExpenseDetailActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.CategoryTotalActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.FilterExpensesActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.SetGoalActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.AddExpenseActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.RegisterActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.MainActivity"
+            android:exported="true" />
+        <activity
+            android:name=".ui.LoginActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
     </application>
+
 </manifest>

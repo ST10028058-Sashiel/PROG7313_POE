@@ -1,10 +1,10 @@
 package com.st10028058.prog7313_part2.ui
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
 import com.google.firebase.firestore.ktx.firestore
@@ -39,14 +39,22 @@ class ExpenseDetailActivity : AppCompatActivity() {
             finish()
         }
 
+        binding.btnDelete.setOnClickListener {
+            AlertDialog.Builder(this)
+                .setTitle("Delete Expense")
+                .setMessage("Are you sure you want to delete this expense?")
+                .setPositiveButton("Delete") { _, _ -> deleteExpense() }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
+
         binding.btnBack.setOnClickListener {
             finish()
         }
     }
 
     private fun loadExpense(docId: String) {
-        val db = Firebase.firestore
-        db.collection("expenses").document(docId).get()
+        Firebase.firestore.collection("expenses").document(docId).get()
             .addOnSuccessListener { document ->
                 val expense = document.toObject(Expense::class.java)
                 if (expense != null) {
@@ -72,6 +80,17 @@ class ExpenseDetailActivity : AppCompatActivity() {
             .addOnFailureListener {
                 Toast.makeText(this, "Failed to load expense", Toast.LENGTH_SHORT).show()
                 finish()
+            }
+    }
+
+    private fun deleteExpense() {
+        Firebase.firestore.collection("expenses").document(documentId).delete()
+            .addOnSuccessListener {
+                Toast.makeText(this, "Expense deleted", Toast.LENGTH_SHORT).show()
+                finish()
+            }
+            .addOnFailureListener {
+                Toast.makeText(this, "Failed to delete expense", Toast.LENGTH_SHORT).show()
             }
     }
 }

@@ -59,6 +59,10 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, MonthlySpendingActivity::class.java))
         }
 
+        binding.btnExport.setOnClickListener {
+            startActivity(Intent(this, ExportActivity::class.java))
+        }
+
         binding.btnLogout.setOnClickListener {
             auth.signOut()
             startActivity(Intent(this, LoginActivity::class.java).apply {

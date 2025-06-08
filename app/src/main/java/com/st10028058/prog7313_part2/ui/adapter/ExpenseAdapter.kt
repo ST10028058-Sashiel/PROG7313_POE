@@ -6,13 +6,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.st10028058.prog7313_part2.data.Expense
 import com.st10028058.prog7313_part2.databinding.ItemExpenseBinding
-import com.st10028058.prog7313_part2.R
 
 class ExpenseAdapter(
-    private val onItemClick: (Expense) -> Unit
+    private val onItemClick: (Expense) -> Unit,
+    private val onItemDelete: (Expense) -> Unit
 ) : RecyclerView.Adapter<ExpenseAdapter.ExpenseViewHolder>() {
 
-    private var expenses = listOf<Expense>()
+    private var expenses = mutableListOf<Expense>()
 
     inner class ExpenseViewHolder(val binding: ItemExpenseBinding) :
         RecyclerView.ViewHolder(binding.root)
@@ -26,25 +26,27 @@ class ExpenseAdapter(
 
     override fun onBindViewHolder(holder: ExpenseViewHolder, position: Int) {
         val expense = expenses[position]
-
         holder.binding.apply {
             tvDescription.text = expense.description
             tvCategory.text = expense.category
             tvAmount.text = String.format("R %.2f", expense.amount)
 
-            Glide.with(imgExpense.context)
-                .load(expense.photoPath ?: "")
-                .placeholder(R.drawable.ic_launcher_foreground) // fallback placeholder image
-                .error(R.drawable.ic_launcher_foreground)
-                .into(imgExpense)
+            if (!expense.photoPath.isNullOrBlank()) {
+                Glide.with(imgExpense.context)
+                    .load(expense.photoPath)
+                    .into(imgExpense)
+            } else {
+                imgExpense.setImageResource(android.R.drawable.ic_menu_report_image)
+            }
 
             root.setOnClickListener { onItemClick(expense) }
-            imgExpense.setOnClickListener { onItemClick(expense) }
+            btnDelete.setOnClickListener { onItemDelete(expense) }
         }
     }
 
     fun submitList(list: List<Expense>) {
-        expenses = list
+        expenses.clear()
+        expenses.addAll(list)
         notifyDataSetChanged()
     }
 }

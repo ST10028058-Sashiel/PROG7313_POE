@@ -1,6 +1,7 @@
 package com.st10028058.prog7313_part2.ui
 
 import android.app.DatePickerDialog
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
@@ -39,6 +40,11 @@ class SpendingGraphActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
             loadGoalsAndSpending()
+        }
+
+        binding.btnBackDashboard.setOnClickListener {
+            startActivity(Intent(this, MainActivity::class.java))
+            finish()
         }
     }
 
@@ -115,21 +121,26 @@ class SpendingGraphActivity : AppCompatActivity() {
                 orientation = LinearLayout.HORIZONTAL
                 setPadding(0, 12, 0, 12)
             }
+
             val label = TextView(this).apply {
                 text = category
                 width = 200
-                setTextColor(Color.BLACK)
+                setTextColor(Color.WHITE) // Light text for dark background
             }
+
             val percent = (if (maxAmount > 0) total / maxAmount else 0.0).coerceIn(0.0, 1.0)
+
             val bar = View(this).apply {
                 layoutParams = LinearLayout.LayoutParams((percent * 600).toInt(), 40)
                 setBackgroundColor(Color.parseColor("#4CAF50"))
             }
+
             val amount = TextView(this).apply {
                 text = "R%.2f".format(total)
                 setPadding(16, 0, 0, 0)
-                setTextColor(Color.DKGRAY)
+                setTextColor(Color.LTGRAY)
             }
+
             row.addView(label)
             row.addView(bar)
             row.addView(amount)
@@ -141,16 +152,19 @@ class SpendingGraphActivity : AppCompatActivity() {
         return LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             setPadding(0, 8, 0, 8)
+
             addView(TextView(context).apply {
                 text = label
                 width = 200
                 setTextColor(color)
             })
+
             val percent = if (maxAmount > 0) (value / maxAmount).coerceIn(0.0, 1.0) else 0.0
             addView(View(context).apply {
                 layoutParams = LinearLayout.LayoutParams((percent * 600).toInt(), 30)
                 setBackgroundColor(color)
             })
+
             addView(TextView(context).apply {
                 text = "R%.2f".format(value)
                 setPadding(16, 0, 0, 0)

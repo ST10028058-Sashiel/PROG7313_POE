@@ -18,22 +18,34 @@ class FilterExpensesActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityFilterExpensesBinding
     private lateinit var adapter: ExpenseAdapter
+    private lateinit var startDate: String
+    private lateinit var endDate: String
+    private val userId by lazy { FirebaseAuth.getInstance().currentUser?.uid ?: "" }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityFilterExpensesBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        adapter = ExpenseAdapter { expense ->
-            val intent = Intent(this, ExpenseDetailActivity::class.java)
-            intent.putExtra("expense_doc_id", expense.id)
-            startActivity(intent)
+        if (userId.isEmpty()) {
+            Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show()
+            finish()
+            return
         }
+
+        adapter = ExpenseAdapter(
+            onItemClick = { expense ->
+                val intent = Intent(this, ExpenseDetailActivity::class.java)
+                intent.putExtra("expense_doc_id", expense.id)
+                startActivity(intent)
+            },
+            onItemDelete = { expense ->
+                deleteExpense(expense.id)
+            }
+        )
 
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
         binding.recyclerView.adapter = adapter
-
-        val calendar = Calendar.getInstance()
 
         binding.etStartDate.setOnClickListener {
             showDatePicker { date -> binding.etStartDate.setText(date) }
@@ -44,57 +56,60 @@ class FilterExpensesActivity : AppCompatActivity() {
         }
 
         binding.btnFilter.setOnClickListener {
-            val startDate = binding.etStartDate.text.toString()
-            val endDate = binding.etEndDate.text.toString()
-
+            startDate = binding.etStartDate.text.toString()
+            endDate = binding.etEndDate.text.toString()
             if (startDate.isEmpty() || endDate.isEmpty()) {
-                Toast.makeText(this, "Please select both dates", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
+                Toast.makeText(this, "Select both dates", Toast.LENGTH_SHORT).show()
+            } else {
+                reloadExpenses()
             }
-
-            val userId = FirebaseAuth.getInstance().currentUser?.uid
-            if (userId.isNullOrEmpty()) {
-                Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            filterExpensesByDateRange(userId, startDate, endDate)
         }
 
-        binding.btnBack.setOnClickListener {
-            finish()
-        }
+        binding.btnBack.setOnClickListener { finish() }
     }
 
     private fun showDatePicker(onDateSet: (String) -> Unit) {
-        val calendar = Calendar.getInstance()
+        val cal = Calendar.getInstance()
         DatePickerDialog(
             this,
-            { _, year, month, day ->
-                val date = String.format("%04d-%02d-%02d", year, month + 1, day)
+            { _, y, m, d ->
+                val date = String.format("%04d-%02d-%02d", y, m + 1, d)
                 onDateSet(date)
             },
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH)
+            cal.get(Calendar.YEAR),
+            cal.get(Calendar.MONTH),
+            cal.get(Calendar.DAY_OF_MONTH)
         ).show()
     }
 
-    private fun filterExpensesByDateRange(userId: String, startDate: String, endDate: String) {
-        val db = Firebase.firestore
-        db.collection("expenses")
+    private fun reloadExpenses() {
+        Firebase.firestore.collection("expenses")
             .whereEqualTo("userId", userId)
             .get()
-            .addOnSuccessListener { result ->
-                val filtered = result.toObjects(Expense::class.java)
-                    .filter { it.date >= startDate && it.date <= endDate }
+            .addOnSuccessListener { snap ->
+                val filtered = snap.toObjects(Expense::class.java)
+                    .filter { it.date in startDate..endDate }
                 adapter.submitList(filtered)
             }
             .addOnFailureListener {
-                Toast.makeText(this, "Failed to load expenses", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Failed to load", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    private fun deleteExpense(docId: String) {
+        Firebase.firestore.collection("expenses")
+            .document(docId)
+            .delete()
+            .addOnSuccessListener {
+                Toast.makeText(this, "Deleted", Toast.LENGTH_SHORT).show()
+                reloadExpenses()
+            }
+            .addOnFailureListener {
+                Toast.makeText(this, "Delete failed", Toast.LENGTH_SHORT).show()
             }
     }
 }
+
 
 //Code Attribution
 

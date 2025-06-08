@@ -1,130 +1,144 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/dashboardLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@android:color/background_dark"
     android:padding="24dp">
 
     <!-- Welcome Message -->
+
+    <!-- Budget Goals -->
+
+    <!-- Buttons -->
     <TextView
         android:id="@+id/tvWelcome"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="56dp"
+        android:layout_marginTop="52dp"
         android:gravity="center"
         android:text="Welcome back, [User Email]!"
-        android:textColor="?attr/colorPrimary"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <!-- Budget Goals Display -->
-    <TextView
-        android:id="@+id/tvBudgetGoals"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:gravity="center"
-        android:text="Monthly Budget Goals: Not Set"
-        android:textColor="#555555"
-        android:textSize="16sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvWelcome" />
-
-    <!-- Add Expense Button -->
-    <Button
-        android:id="@+id/btnAddExpense"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:backgroundTint="#27AE60"
-        android:text="➕ Add New Expense"
-        android:textColor="#FFFFFF"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvBudgetGoals" />
-
-    <Button
-        android:id="@+id/btnSetGoals"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:backgroundTint="#2980B9"
-        android:text="🎯 Set Budget Goals"
-        android:textColor="#FFFFFF"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btnAddExpense" />
-
-    <Button
-        android:id="@+id/btnFilterExpenses"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:backgroundTint="#8E44AD"
-        android:text="📅 View Expenses by Date"
-        android:textColor="#FFFFFF"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btnSetGoals" />
-
-    <Button
-        android:id="@+id/btnCategoryTotals"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:backgroundTint="#E67E22"
-        android:text="📊 View Totals by Category"
-        android:textColor="#FFFFFF"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btnFilterExpenses" />
-
-    <Button
-        android:id="@+id/btnCategoryGraph"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:backgroundTint="#E67E22"
-        android:text="View Category Graph"
-        android:textColor="#FFFFFF"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btnCategoryTotals" />
-
-    <Button
-        android:id="@+id/btnViewMonthlyProgress"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:backgroundTint="#E67E22"
-        android:text="View Monthly Spending"
-        android:textColor="#FFFFFF"
+        android:textColor="@android:color/white"
+        android:textSize="24sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnCategoryGraph" />
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <Button
+    <TextView
+        android:id="@+id/tvBudgetGoals"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="52dp"
+        android:gravity="center"
+        android:text="Monthly Budget Goals: Not Set"
+        android:textColor="#AAAAAA"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvWelcome" />
+
+    <LinearLayout
+        android:id="@+id/llButtons"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintTop_toBottomOf="@id/tvBudgetGoals"
+        app:layout_constraintBottom_toTopOf="@id/btnLogout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="24dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAddExpense"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="➕ Add New Expense"
+            android:textColor="@android:color/white"
+            app:strokeColor="@color/teal_700"
+            app:strokeWidth="2dp"
+            android:layout_marginBottom="12dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSetGoals"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🎯 Set Budget Goals"
+            android:textColor="@android:color/white"
+            app:strokeColor="@color/purple_500"
+            app:strokeWidth="2dp"
+            android:layout_marginBottom="12dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnFilterExpenses"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📅 View Expenses by Date"
+            android:textColor="@android:color/white"
+            app:backgroundTint="#8E44AD"
+            android:layout_marginBottom="12dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCategoryTotals"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📊 View Totals by Category"
+            android:textColor="@android:color/white"
+            app:backgroundTint="#F39C12"
+            android:layout_marginBottom="12dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCategoryGraph"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📈 View Category Graph"
+            android:textColor="@android:color/white"
+            app:backgroundTint="#D35400"
+            android:layout_marginBottom="12dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnViewMonthlyProgress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📆 View Monthly Spending"
+            android:textColor="@android:color/white"
+            app:backgroundTint="#16A085"
+            android:layout_marginBottom="12dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnExport"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📤 Export All Expenses"
+            android:textColor="@android:color/white"
+            app:backgroundTint="#2980B9"
+            android:layout_marginBottom="12dp"/>
+    </LinearLayout>
+
+
+    <!-- Logout Button -->
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnLogout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="68dp"
-        android:background="?attr/selectableItemBackground"
         android:text="Logout"
-        android:textColor="?attr/colorPrimary"
-        app:layout_constraintTop_toBottomOf="@+id/btnViewMonthlyProgress"
-        tools:layout_editor_absoluteX="286dp" />
+        android:textColor="@android:color/white"
+        android:gravity="center"
+        android:icon="@drawable/ic_logout"
+        android:iconTint="@android:color/white"
+
+        app:backgroundTint="#E53935"
+        app:cornerRadius="24dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="16dp"/>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
