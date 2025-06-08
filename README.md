@@ -75,7 +75,7 @@ These features enhance the gamification, interactivity, and usability elements o
 ## 6. 🎥 Demonstration Video
 
 Watch our full video demonstration here:  
-🔗 **YouTube Link:** [Insert Unlisted YouTube URL Here]  
+🔗 **YouTube Link:** [https://youtu.be/X6qBnIeEY1M?si=-MfWkiZCW4sCr8Uu]  
 
 > 🗣️ *Note: The video includes voiceover, a real-device demo, and a walkthrough of all features.*
 
