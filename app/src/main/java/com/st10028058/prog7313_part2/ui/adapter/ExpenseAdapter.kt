@@ -3,11 +3,12 @@ package com.st10028058.prog7313_part2.ui.adapter
 import android.content.Intent
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat.startActivity
+import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.st10028058.prog7313_part2.data.Expense
 import com.st10028058.prog7313_part2.databinding.ItemExpenseBinding
+import java.io.File
 
 class ExpenseAdapter(
     private val onItemClick: (Expense) -> Unit,
@@ -31,9 +32,8 @@ class ExpenseAdapter(
         holder.binding.apply {
             tvDescription.text = expense.description
             tvCategory.text = expense.category
-            tvAmount.text = String.format("R %.2f", expense.amount)
+            tvAmount.text = "R %.2f".format(expense.amount)
 
-            // Load image if available
             if (!expense.photoPath.isNullOrBlank()) {
                 Glide.with(imgExpense.context)
                     .load(expense.photoPath)
@@ -43,24 +43,39 @@ class ExpenseAdapter(
             }
 
             root.setOnClickListener { onItemClick(expense) }
-
             btnDelete.setOnClickListener { onItemDelete(expense) }
 
-            // Share button implementation
             btnShare.setOnClickListener {
                 val context = it.context
                 val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                    type = "text/plain"
-                    putExtra(Intent.EXTRA_SUBJECT, "Expense Shared")
                     putExtra(
                         Intent.EXTRA_TEXT,
-                        "Here's an expense I tracked:\n" +
-                                "Description: ${expense.description}\n" +
-                                "Category: ${expense.category}\n" +
-                                "Amount: R%.2f".format(expense.amount)
+                        """
+                        Here's an expense I tracked:
+                        Description: ${expense.description}
+                        Category: ${expense.category}
+                        Amount: R${"%.2f".format(expense.amount)}
+                        """.trimIndent()
                     )
+                    if (!expense.photoPath.isNullOrBlank()) {
+                        val imageFile = File(expense.photoPath)
+                        if (imageFile.exists()) {
+                            val uri = FileProvider.getUriForFile(
+                                context,
+                                "${context.packageName}.provider",
+                                imageFile
+                            )
+                            type = "image/*"
+                            putExtra(Intent.EXTRA_STREAM, uri)
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        } else {
+                            type = "text/plain"
+                        }
+                    } else {
+                        type = "text/plain"
+                    }
                 }
-                context.startActivity(Intent.createChooser(shareIntent, "Share via"))
+                context.startActivity(Intent.createChooser(shareIntent, "Share Expense via"))
             }
         }
     }

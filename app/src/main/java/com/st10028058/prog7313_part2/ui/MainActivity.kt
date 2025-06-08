@@ -1,5 +1,6 @@
 package com.st10028058.prog7313_part2.ui
 
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -9,7 +10,9 @@ import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.google.firebase.auth.FirebaseAuth
@@ -25,16 +28,16 @@ class MainActivity : AppCompatActivity() {
     private val auth = FirebaseAuth.getInstance()
     private val db = Firebase.firestore
     private var expenseListener: ListenerRegistration? = null
+    private val REQUEST_PERMISSIONS = 1002
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        requestAllPermissions()
         createNotificationChannel()
-        requestNotificationPermission()
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Navigation Buttons
         binding.btnAddExpense.setOnClickListener {
             startActivity(Intent(this, AddExpenseActivity::class.java))
         }
@@ -168,11 +171,24 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun requestNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 1001)
-            }
+    private fun requestAllPermissions() {
+        val permissions = mutableListOf<String>()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            permissions.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
+
+        if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            permissions.add(Manifest.permission.CAMERA)
+        }
+
+        if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
+
+        if (permissions.isNotEmpty()) {
+            ActivityCompat.requestPermissions(this, permissions.toTypedArray(), REQUEST_PERMISSIONS)
         }
     }
 }
