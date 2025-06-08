@@ -1,7 +1,9 @@
 package com.st10028058.prog7313_part2.ui.adapter
 
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat.startActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.st10028058.prog7313_part2.data.Expense
@@ -31,6 +33,7 @@ class ExpenseAdapter(
             tvCategory.text = expense.category
             tvAmount.text = String.format("R %.2f", expense.amount)
 
+            // Load image if available
             if (!expense.photoPath.isNullOrBlank()) {
                 Glide.with(imgExpense.context)
                     .load(expense.photoPath)
@@ -40,7 +43,25 @@ class ExpenseAdapter(
             }
 
             root.setOnClickListener { onItemClick(expense) }
+
             btnDelete.setOnClickListener { onItemDelete(expense) }
+
+            // Share button implementation
+            btnShare.setOnClickListener {
+                val context = it.context
+                val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_SUBJECT, "Expense Shared")
+                    putExtra(
+                        Intent.EXTRA_TEXT,
+                        "Here's an expense I tracked:\n" +
+                                "Description: ${expense.description}\n" +
+                                "Category: ${expense.category}\n" +
+                                "Amount: R%.2f".format(expense.amount)
+                    )
+                }
+                context.startActivity(Intent.createChooser(shareIntent, "Share via"))
+            }
         }
     }
 

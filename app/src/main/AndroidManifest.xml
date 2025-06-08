@@ -20,9 +20,11 @@
         android:theme="@style/Theme.PROG7313_Part2"
         tools:targetApi="31">
         <activity
-            android:name=".ui.ExportActivity"
+            android:name=".ui.AIChatActivity"
             android:exported="false" />
-        <!-- FileProvider for camera image sharing -->
+        <activity
+            android:name=".ui.ExportActivity"
+            android:exported="false" /> <!-- FileProvider for camera image sharing -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"
